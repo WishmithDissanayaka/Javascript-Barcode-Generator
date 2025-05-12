@@ -1,87 +1,96 @@
 function generateBarcode() {
-    // Get input text
-    const input = document.getElementById("barcodeInput").value; 
-    // Get the container for barcodes
-    const container = document.getElementById("barcodeContainer"); 
+    // Get the user input value from the text field
+    const input = document.getElementById("barcodeInput").value;
 
-    // Clear existing barcodes
-    container.innerHTML = ""; 
+    // Get the the barcode container
+    const container = document.getElementById("barcodeContainer");
 
-    // Split by comma, trim spaces, remove empties
-    const values = input.split(",").map(v => v.trim()).filter(v => v); 
+    // Clear any displayed barcodes
+    container.innerHTML = "";
 
-    values.forEach((val) => {
-        // Create a new SVG element
-        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");  
-        // Add it to the container
-        container.appendChild(svg); 
+    // Split the input by commas, trim and remove any empty strings
+    const values = input.split(",").map(v => v.trim()).filter(v => v);
 
-        JsBarcode(svg, val, {
-            format: "code128",      
-            displayValue: true      
+    values.forEach(val => {
+        // Create an <img> element to display the barcode as an image (Switched to img due to jspdf not supporting inline svg directly.).
+        const img = document.createElement("img");
+
+        // Generate the barcode using JsBarcode and apply it to the <img>
+        JsBarcode(img, val, {
+            format: "code128",       
+            displayValue: true,      // Show text value below barcode
+            width: 2,                // Width of each bar
+            height: 40               // Height of barcode
         });
+
+        // Add generated barcode image to the display container
+        container.appendChild(img);
     });
 }
 
 function clearForm() {
-    // Clear the input box
+    // Clear the input field where the user types barcode values
     document.getElementById("barcodeInput").value = ""; 
-    // Clear all generated barcodes
+
+    // Clear the container that displays the barcode previews
     document.getElementById("barcodeContainer").innerHTML = ""; 
 }
 
 function generatePDF() {
-    // Select all SVGs inside the container
-    const svgs = document.querySelectorAll("#barcodeContainer svg"); 
-    // Create a new PDF document
-    const doc = new jspdf.jsPDF(); 
-    // Temporary canvas for rendering images
-    const canvas = document.createElement("canvas"); 
-    // Get 2D drawing context
-    const ctx = canvas.getContext("2d"); 
+    // Select all barcode <img> elements from the display container
+    const imgs = document.querySelectorAll("#barcodeContainer img");
 
-    // Initial vertical position in PDF
-    let y = 10; 
-    let index = 0; 
+    // Create new jsPDF document with custom dimensions: 80mm wide by 120mm tall(40*2 and 20*6) for the label roll
+    const doc = new jspdf.jsPDF({ unit: "mm", format: [80, 120] });
 
-    const processNext = () => {
-        if (index >= svgs.length) {
-            // Save PDF after all barcodes are added
-            doc.save("barcodes.pdf"); 
-            return;
+    // Set the size for each label
+    const labelWidth = 40;  // 40mm wide
+    const labelHeight = 20; // 20mm tall
+
+    // Define the number of columns and rows per page
+    const columns = 2;
+    const rows = 6;
+
+    // Maximum number of barcode labels per page
+    const labelsPerPage = columns * rows;
+
+    // Track the current column and row for placing barcodes
+    let col = 0;
+    let row = 0;
+    let labelCount = 0;
+
+    imgs.forEach(img => {
+        // Repeat each barcode 6 times
+        for (let i = 0; i < 6; i++) {
+            // If current page is full, start new page
+            if (labelCount === labelsPerPage) {
+                doc.addPage([80, 120]); // Add a new page of the same size
+                labelCount = 0;
+                col = 0;
+                row = 0;
+            }
+
+            // Calculate the x and y position for placing the barcode
+            const x = col * labelWidth;
+            const y = row * labelHeight;
+
+            // Add the barcode image to the PDF at the calculated position
+            doc.addImage(img, "PNG", x, y, labelWidth, labelHeight);
+
+            // Move to the next column
+            col++;
+
+            // If all columns are filled, move to the next row
+            if (col >= columns) {
+                col = 0;
+                row++;
+            }
+
+            // Increase the number of labels added to the current page
+            labelCount++;
         }
+    });
 
-        // Get the current SVG
-        const svg = svgs[index]; 
-        // Convert SVG to XML string
-        const svgData = new XMLSerializer().serializeToString(svg); 
-        // Create image to load SVG
-        const img = new Image(); 
-
-        img.onload = () => {
-            // Match canvas size to image
-            canvas.width = img.width; 
-            canvas.height = img.height;
-            // Clear canvas
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            // Draw SVG as image on canvas 
-            ctx.drawImage(img, 0, 0); 
-
-            // Convert canvas to PNG data URL
-            const imgData = canvas.toDataURL("image/png"); 
-            // Add to PDF
-            doc.addImage(imgData, "PNG", 10, y, img.width / 4, img.height / 4); 
-            // Move down for next barcode
-            y += img.height / 4 + 10; 
-            index++;
-            // Continue with next SVG
-            processNext(); 
-        };
-
-        // Load SVG into image
-        img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgData); 
-    };
-
-    // Start processing
-    processNext(); 
+    // Save and download the generated PDF as "barcodes.pdf"
+    doc.save("barcodes.pdf");
 }
