@@ -17,14 +17,15 @@
 
     <!-- form where barcode generation takes place-->
     <form onsubmit="event.preventDefault(); generateBarcode();">
-      <label for="barcodeInput">Enter text to generate barcode:</label>
+      <label for="barcodeInput">Enter text to generate barcode (If you would like multiple barcodes, please seperate them using a ","):</label>
       <input id="barcodeInput" name="barcode" type="text" required>
       <button type="submit" class="generate-btn">Generate Barcode</button>
     </form>
 
     <!-- Display the generated barcode -->
     <div class="barcode-display">
-      <svg id="barcode"></svg>
+      <!-- <svg id="barcode"></svg> -->
+      <div id="barcodeContainer"></div>
     </div>
 
     <!-- Button for pdf generation -->
