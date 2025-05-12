@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Barcode Generator</title>
+  <!-- Linked to the CSS file for styling -->
+  <link rel="stylesheet" href="styles.css">
+  <!-- Use the jspdf library to generate the pdf-->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/3.0.1/jspdf.umd.min.js"></script>
+  <!-- Use the jsbarcode library to generate the barcode -->
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+</head>
+<body>
+  <div class="container">
+
+    <h1>Barcode Generator</h1>
+
+    <!-- form where barcode generation takes place-->
+    <form onsubmit="event.preventDefault(); generateBarcode();">
+      <label for="barcodeInput">Enter text to generate barcode:</label>
+      <input id="barcodeInput" name="barcode" type="text" required>
+      <button type="submit" class="generate-btn">Generate Barcode</button>
+    </form>
+
+    <!-- Display the generated barcode -->
+    <div class="barcode-display">
+      <svg id="barcode"></svg>
+    </div>
+
+    <!-- Button for pdf generation -->
+    <button onclick="generatePDF()">Generate PDF</button>
+
+    <!-- Button to clear the form -->
+    <button onclick="clearForm()">Clear</button>
+
+  </div>
+  <!-- Linked to the JavaScript file -->
+  <script src="script.js"></script>
+</body>
+</html>
