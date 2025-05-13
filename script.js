@@ -54,7 +54,6 @@ function generatePDF() {
     const labelsPerPage = columns * rows;
 
     // Adjust the PDF page size to include spacing between columns and rows, plus top/bottom margin
-    const topBottomMargin = spacing; // 4mm top and bottom margin
     const pageWidth = columns * labelWidth + (columns - 1) * spacing;            // 2 * 45 + 1 * 4 = 94mm
     const pageHeight = rows * labelHeight + (rows - 1) * spacing + 2 * spacing;  // 9 * 12 + 8 * 4 + 2 * 4 = 148mm
 
@@ -79,7 +78,7 @@ function generatePDF() {
 
             // Calculate the x and y position for placing the barcode
             const x = col * (labelWidth + spacing); // Add spacing between columns
-            const y = topBottomMargin + row * (labelHeight + spacing); // Add top margin and spacing between rows
+            const y = spacing + row * (labelHeight + spacing); // Add top margin and spacing between rows
 
             // Add the barcode image to the PDF at the calculated position
             doc.addImage(img, "PNG", x, y, labelWidth, labelHeight);
