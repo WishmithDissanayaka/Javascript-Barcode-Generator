@@ -40,19 +40,25 @@ function generatePDF() {
     // Select all barcode <img> elements from the display container
     const imgs = document.querySelectorAll("#barcodeContainer img");
 
-    // Create new jsPDF document with custom dimensions: 80mm wide by 120mm tall(40*2 and 20*6) for the label roll
-    const doc = new jspdf.jsPDF({ unit: "mm", format: [80, 120] });
-
     // Set the size for each label
-    const labelWidth = 40;  // 40mm wide
-    const labelHeight = 20; // 20mm tall
+    const labelWidth = 45;  // 45mm wide
+    const labelHeight = 12; // 12mm tall
+
+    const spacing = 4; // 4mm gap between barcode labels 
 
     // Define the number of columns and rows per page
     const columns = 2;
-    const rows = 6;
+    const rows = 9;
 
     // Maximum number of barcode labels per page
     const labelsPerPage = columns * rows;
+
+    // Adjust the PDF page size to include spacing between columns and rows
+    const pageWidth = columns * labelWidth + (columns - 1) * spacing;   // 2 * 45 + 1 * 4 = 94mm
+    const pageHeight = rows * labelHeight + (rows - 1) * spacing;       // 9 * 12 + 8 * 4 = 140mm
+
+    // Create new jsPDF document with updated dimensions
+    const doc = new jspdf.jsPDF({ unit: "mm", format: [pageWidth, pageHeight] });
 
     // Track the current column and row for placing barcodes
     let col = 0;
@@ -63,16 +69,16 @@ function generatePDF() {
         // Repeat each barcode 6 times
         for (let i = 0; i < 6; i++) {
             // If current page is full, start new page
-            if (labelCount === labelsPerPage) {
-                doc.addPage([80, 120]); // Add a new page of the same size
+            if (labelCount >= labelsPerPage) { // Used >= instead of === to avoid overflow
+                doc.addPage([pageWidth, pageHeight]); // Add a new page of the same size
                 labelCount = 0;
                 col = 0;
                 row = 0;
             }
 
             // Calculate the x and y position for placing the barcode
-            const x = col * labelWidth;
-            const y = row * labelHeight;
+            const x = col * (labelWidth + spacing); // Add spacing between columns
+            const y = row * (labelHeight + spacing); // Add spacing between rows
 
             // Add the barcode image to the PDF at the calculated position
             doc.addImage(img, "PNG", x, y, labelWidth, labelHeight);
@@ -94,3 +100,5 @@ function generatePDF() {
     // Save and download the generated PDF as "barcodes.pdf"
     doc.save("barcodes.pdf");
 }
+
+
